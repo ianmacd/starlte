@@ -123,6 +123,13 @@ config MALI_VK_BOOST
 	help
 	  Choose this option to enable VK JOB PMQOS BOOST in the Mali tHEx DDK.
 
+config MALI_OVERCLOCK
+	bool "Enable GPU overclocking"
+	depends on MALI_THEX && MALI_RT_PM && MALI_DVFS
+	default n
+	help
+	  Choose this option to enable GPU overclocking.
+
 config MALI_SEC_JOB_STATUS_CHECK
 	bool "Enable GPU JOB & FENCE STATUS DUMP"
 	depends on MALI_THEX && MALI_RT_PM && MALI_DVFS
