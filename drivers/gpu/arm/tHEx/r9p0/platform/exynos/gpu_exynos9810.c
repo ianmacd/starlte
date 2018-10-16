@@ -69,7 +69,17 @@ void __iomem *g3d1_outstanding_regs;
 
 /*  clk,vol,abb,min,max,down stay, pm_qos mem, pm_qos int, pm_qos cpu_kfc_min, pm_qos cpu_egl_max */
 static gpu_dvfs_info gpu_dvfs_table_default[] = {
-#ifdef CONFIG_MALI_OVERCLOCK
+	{572, 800000, 0, 78, 100, 9, 0, 1794000, 400000, 1950000, CPU_MAX},
+	{546, 800000, 0, 78,  99, 5, 0, 1794000, 400000, 1950000, CPU_MAX},
+	{455, 800000, 0, 78,  85, 1, 0, 1539000, 400000, 1794000, CPU_MAX},
+	{338, 800000, 0, 78,  85, 1, 0, 1352000, 267000, 1248000, CPU_MAX},
+	{299, 800000, 0, 78,  85, 1, 0, 1014000, 267000,       0, CPU_MAX},
+	{260, 800000, 0, 78,  85, 1, 0,  676000, 178000,       0, CPU_MAX},
+	{},
+	{}
+};
+
+static gpu_dvfs_info gpu_dvfs_table_default_oc[] = {
 	{598, 800000, 0, 78, 100, 9, 0, 1794000, 400000, 1950000, CPU_MAX},
 	{572, 800000, 0, 78,  99, 5, 0, 1794000, 400000, 1950000, CPU_MAX},
 	{546, 800000, 0, 78,  98, 5, 0, 1794000, 400000, 1950000, CPU_MAX},
@@ -77,15 +87,7 @@ static gpu_dvfs_info gpu_dvfs_table_default[] = {
 	{385, 800000, 0, 78,  85, 1, 0, 1352000, 336000, 1456000, CPU_MAX},
 	{338, 800000, 0, 78,  85, 1, 0, 1352000, 267000, 1248000, CPU_MAX},
 	{299, 800000, 0, 78,  85, 1, 0, 1014000, 267000,  949000, CPU_MAX},
-	{260, 800000, 0, 78,  85, 1, 0,  676000, 178000,       0, CPU_MAX},
-#else
-	{572, 800000, 0, 78, 100, 9, 0, 1794000, 400000, 1950000, CPU_MAX},
-	{546, 800000, 0, 78,  99, 5, 0, 1794000, 400000, 1950000, CPU_MAX},
-	{455, 800000, 0, 78,  85, 1, 0, 1539000, 400000, 1794000, CPU_MAX},
-	{338, 800000, 0, 78,  85, 1, 0, 1352000, 267000, 1248000, CPU_MAX},
-	{299, 800000, 0, 78,  85, 1, 0, 1014000, 267000,       0, CPU_MAX},
-	{260, 800000, 0, 78,  85, 1, 0,  676000, 178000,       0, CPU_MAX},
-#endif
+	{260, 800000, 0, 78,  85, 1, 0,  676000, 178000,       0, CPU_MAX}
 };
 
 static int mif_min_table[] = {
@@ -97,31 +99,16 @@ static int mif_min_table[] = {
 };
 
 static gpu_attribute gpu_config_attributes[] = {
-#ifdef CONFIG_MALI_OVERCLOCK
-	{GPU_MAX_CLOCK, 598},
-	{GPU_MAX_CLOCK_LIMIT, 598},
-	{GPU_MIN_CLOCK, 299},
-	{GPU_DVFS_START_CLOCK, 299},
-	{GPU_DVFS_BL_CONFIG_CLOCK, 299},
-#else
 	{GPU_MAX_CLOCK, 572},
 	{GPU_MAX_CLOCK_LIMIT, 572},
 	{GPU_MIN_CLOCK, 260},
 	{GPU_DVFS_START_CLOCK, 260},
 	{GPU_DVFS_BL_CONFIG_CLOCK, 260},
-#endif
 	{GPU_GOVERNOR_TYPE, G3D_DVFS_GOVERNOR_INTERACTIVE},
-#ifdef CONFIG_MALI_OVERCLOCK
-	{GPU_GOVERNOR_START_CLOCK_DEFAULT, 299},
-	{GPU_GOVERNOR_START_CLOCK_INTERACTIVE, 299},
-	{GPU_GOVERNOR_START_CLOCK_STATIC, 299},
-	{GPU_GOVERNOR_START_CLOCK_BOOSTER, 299},
-#else
 	{GPU_GOVERNOR_START_CLOCK_DEFAULT, 260},
 	{GPU_GOVERNOR_START_CLOCK_INTERACTIVE, 260},
 	{GPU_GOVERNOR_START_CLOCK_STATIC, 260},
 	{GPU_GOVERNOR_START_CLOCK_BOOSTER, 260},
-#endif
 	{GPU_GOVERNOR_TABLE_DEFAULT, (uintptr_t)&gpu_dvfs_table_default},
 	{GPU_GOVERNOR_TABLE_INTERACTIVE, (uintptr_t)&gpu_dvfs_table_default},
 	{GPU_GOVERNOR_TABLE_STATIC, (uintptr_t)&gpu_dvfs_table_default},
@@ -168,6 +155,92 @@ static gpu_attribute gpu_config_attributes[] = {
 #endif
 	{GPU_CONFIG_LIST_END, 0}
 };
+
+static gpu_attribute gpu_config_attributes_oc[] = {
+	{GPU_MAX_CLOCK, 598},
+	{GPU_MAX_CLOCK_LIMIT, 598},
+	{GPU_MIN_CLOCK, 299},
+	{GPU_DVFS_START_CLOCK, 299},
+	{GPU_DVFS_BL_CONFIG_CLOCK, 299},
+	{GPU_GOVERNOR_TYPE, G3D_DVFS_GOVERNOR_INTERACTIVE},
+	{GPU_GOVERNOR_START_CLOCK_DEFAULT, 299},
+	{GPU_GOVERNOR_START_CLOCK_INTERACTIVE, 299},
+	{GPU_GOVERNOR_START_CLOCK_STATIC, 299},
+	{GPU_GOVERNOR_START_CLOCK_BOOSTER, 299},
+	{GPU_GOVERNOR_TABLE_DEFAULT, (uintptr_t)&gpu_dvfs_table_default},
+	{GPU_GOVERNOR_TABLE_INTERACTIVE, (uintptr_t)&gpu_dvfs_table_default},
+	{GPU_GOVERNOR_TABLE_STATIC, (uintptr_t)&gpu_dvfs_table_default},
+	{GPU_GOVERNOR_TABLE_BOOSTER, (uintptr_t)&gpu_dvfs_table_default},
+	{GPU_GOVERNOR_TABLE_SIZE_DEFAULT, GPU_DVFS_TABLE_LIST_SIZE(gpu_dvfs_table_default)},
+	{GPU_GOVERNOR_TABLE_SIZE_INTERACTIVE, GPU_DVFS_TABLE_LIST_SIZE(gpu_dvfs_table_default)},
+	{GPU_GOVERNOR_TABLE_SIZE_STATIC, GPU_DVFS_TABLE_LIST_SIZE(gpu_dvfs_table_default)},
+	{GPU_GOVERNOR_TABLE_SIZE_BOOSTER, GPU_DVFS_TABLE_LIST_SIZE(gpu_dvfs_table_default)},
+	{GPU_GOVERNOR_INTERACTIVE_HIGHSPEED_CLOCK, 455},
+	{GPU_GOVERNOR_INTERACTIVE_HIGHSPEED_LOAD, 95},
+	{GPU_GOVERNOR_INTERACTIVE_HIGHSPEED_DELAY, 0},
+	{GPU_DEFAULT_VOLTAGE, 800000},
+	{GPU_COLD_MINIMUM_VOL, 0},
+	{GPU_VOLTAGE_OFFSET_MARGIN, 37500},
+	{GPU_TMU_CONTROL, 1},
+	{GPU_TEMP_THROTTLING1, 572},
+	{GPU_TEMP_THROTTLING2, 546},
+	{GPU_TEMP_THROTTLING3, 455},
+	{GPU_TEMP_THROTTLING4, 338},
+	{GPU_TEMP_THROTTLING5, 260},
+	{GPU_TEMP_TRIPPING, 260},
+	{GPU_POWER_COEFF, 625}, /* all core on param */
+	{GPU_DVFS_TIME_INTERVAL, 5},
+	{GPU_DEFAULT_WAKEUP_LOCK, 1},
+	{GPU_BUS_DEVFREQ, 0},
+	{GPU_DYNAMIC_ABB, 0},
+	{GPU_EARLY_CLK_GATING, 0},
+	{GPU_DVS, 0},
+	{GPU_INTER_FRAME_PM, 1},
+	{GPU_PERF_GATHERING, 0},
+	{GPU_RUNTIME_PM_DELAY_TIME, 50},
+	{GPU_DVFS_POLLING_TIME, 30},
+	{GPU_PMQOS_INT_DISABLE, 1},
+	{GPU_PMQOS_MIF_MAX_CLOCK, 1794000},
+	{GPU_PMQOS_MIF_MAX_CLOCK_BASE, 572},
+	{GPU_CL_DVFS_START_BASE, 455},
+	{GPU_DEBUG_LEVEL, DVFS_WARNING},
+	{GPU_TRACE_LEVEL, TRACE_ALL},
+	{GPU_MO_MIN_CLOCK, 455},
+	{GPU_BOOST_EGL_MIN_LOCK, 1872000},
+#ifdef CONFIG_MALI_VK_BOOST
+	{GPU_VK_BOOST_MAX_LOCK, 338},
+	{GPU_VK_BOOST_MIF_MIN_LOCK, 1794000},
+#endif
+	{GPU_CONFIG_LIST_END, 0}
+};
+
+static bool arg_gpu_overclock;
+
+static int read_gpu_overclock(char *oc)
+{
+	bool gpu_oc;
+	int ret;
+	int i;
+
+	ret = kstrtobool(oc, &gpu_oc);
+	if (ret)
+		return -EINVAL;
+
+	arg_gpu_overclock = gpu_oc;
+
+	if (arg_gpu_overclock) {
+		for (i = 0; i < ARRAY_SIZE(gpu_dvfs_table_default); i++) {
+			gpu_dvfs_table_default[i] = gpu_dvfs_table_default_oc[i];
+		}
+		for (i = 0; i < ARRAY_SIZE(gpu_config_attributes); i++) {
+			gpu_config_attributes[i] = gpu_config_attributes_oc[i];
+		}
+	}
+
+	return ret;
+}
+__setup("gpu_overclock=", read_gpu_overclock);
+
 
 int gpu_dvfs_decide_max_clock(struct exynos_context *platform)
 {
