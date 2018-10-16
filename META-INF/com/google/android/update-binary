@@ -17,7 +17,7 @@ scr_wdth=50
 readlink /proc/$$/fd/$OUTFD 2>/dev/null | grep /tmp >/dev/null
 if [ $? -eq 0 ]; then
   OUTFD=0
-  for FD in `ls /proc/$$/fd` ; do
+  for FD in $( ls /proc/$$/fd ) ; do
     readlink /proc/$$/fd/$FD 2>/dev/null | grep pipe >/dev/null
     if [ $? -eq 0 ]; then
       ps | grep " 3 $FD " | grep -v grep >/dev/null
@@ -37,22 +37,22 @@ get_key() {
 }
 
 q_and_a() {
-  q=$1
+  local q=$1
   shift
 
   # The strange formatting is to keep ui_print() happy.
   #
-  choice="Vol Up   = $1\nui_print      Vol Down = $2\n"
+  local choice="Vol Up   = $1\nui_print      Vol Down = $2\n"
   [ -n "$3" ] && choice="Bixby    = $3\nui_print      $choice"
 
   ui_print " "
   ui_print " - $q"
   ui_print "     $choice"
 
-  n=99
+  local n=99
   until [ $n -le $# ]; do
     unset UP DOWN BIXBY
-    a=$(get_key)
+    local a=$(get_key)
 
     case $a in
       *UP)
@@ -73,6 +73,9 @@ q_and_a() {
     esac
 
   done
+
+  CHOICE=$(eval echo '$'$n)
+  ui_print "   '$CHOICE' selected."
 }
 
 ui_print() {
@@ -85,18 +88,18 @@ print_full_bar() {
 }
 
 print_justified() {
-  str="$1"
-  str_len=${#str}
-  padding_len=$(( ($scr_wdth - $str_len - 2) / 2))
-  ljust="$(printf '%*s' $padding_len)"
-  rjust="$(printf '%*s' $(($padding_len + $str_len % 2)))"
+  local str="$1"
+  local str_len=${#str}
+  local padding_len=$(( ($scr_wdth - $str_len - 2) / 2))
+  local ljust="$(printf '%*s' $padding_len)"
+  local rjust="$(printf '%*s' $(($padding_len + $str_len % 2)))"
 
   ui_print "=$ljust$str$rjust="
 }
 
 resolve_link() {
   if [ -z "$1" ] || [ ! -e $1 ]; then
-    return 1;
+    return 1
   fi
   local VAR=$1
   while [ -L $VAR ]; do
@@ -157,10 +160,12 @@ if [ -z "$BOOT" ]; then
 fi
 
 ZIPNAME=${ZIPFILE##*/}
-[ $ZIPNAME != ${ZIPNAME/_interactive//} ] && INTERACTIVE=true
 
-if [ "$INTERACTIVE" = true ]; then
-  ui_print " - Interactive installation requested."
+if [ $ZIPNAME != ${ZIPNAME/_interactive//} ] ||
+  [ -f /external_sd/.apgk_interactive ]; then
+  INTERACTIVE=true
+
+  ui_print " - Interactive installation selected..."
 
   # /system needed for getevent command.
   #
@@ -177,17 +182,19 @@ if [ "$INTERACTIVE" = true ]; then
 
   ui_print " "
 else
-  # Read kernel choice from archive name, if applicable.
+  # Attempt to infer choice of kernel from archive name or dot-file.
   #
-  [ $ZIPNAME != ${ZIPNAME/_underclock//} ] && UNDERCLOCK=true
-  [ $ZIPNAME != ${ZIPNAME/_overclock//} ] && OVERCLOCK=true
-  
-  # Otherwise, check for dotfiles to determine kernel choice.
-  #
-  [ -f /external_sd/.underclock ] && UNDERCLOCK=true
-  [ -f /external_sd/.overclock ] && OVERCLOCK=true
+  if [ $ZIPNAME != ${ZIPNAME/_underclock//} ] ||
+    [ -f /external_sd/.apgk_underclock ]; then
+    UNDERCLOCK=true
+  fi
 
-  # Read desire to install Magisk from archive name, if applicable.
+  if [ $ZIPNAME != ${ZIPNAME/_overclock//} ] ||
+    [ -f /external_sd/.apgk_overclock ]; then
+    OVERCLOCK=true
+  fi
+
+  # Attempt to infer desire to install Magisk from archive name.
   #
   [ $ZIPNAME != ${ZIPNAME/_magisk//} ] && MAGISK=true
 fi
@@ -248,12 +255,13 @@ ui_print " - Installation completed."
 #
 int=/sdcard/Download	# The standard download location on internal SD card.
 ext=/external_sd	# The external SD card, if present.
+mfile=.apgk_magisk	# The name of the file to look for.
 
 # If .magisk exists at none of these locations, the APGK zip file doesn't
 # contain _magisk in the name and we didn't interactively request Magisk,
 # we are finished.
 #
-if ( ([ ! -f $int/.magisk ] && [ ! -f $ext/.magisk ]) || "$INTERACTIVE" = true) \
+if ( ([ ! -f $int/$mfile ] && [ ! -f $ext/$mfile ]) || "$INTERACTIVE" = true) \
   && [ -z "$MAGISK" ]; then
   ui_print " - You may now root the device at your discretion."
   ui_print " "
