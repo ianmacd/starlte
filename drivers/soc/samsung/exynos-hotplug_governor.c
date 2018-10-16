@@ -35,22 +35,22 @@
 #define BIG	1
 
 extern unsigned long arg_cpu_max_c2;
-static unsigned long arg_overclock = 0;
+static unsigned long arg_cpu_overclock = 0;
 
-static int read_overclock(char *oc)
+static int read_cpu_overclock(char *oc)
 {
-	unsigned long ui_oc;
+	unsigned long cpu_oc;
 	int ret;
 
-	ret = kstrtoul(oc, 0, &ui_oc);
+	ret = kstrtoul(oc, 0, &cpu_oc);
 	if (ret)
 		return -EINVAL;
 
-	arg_overclock = ui_oc;
+	arg_cpu_overclock = cpu_oc;
 
 	return ret;
 }
-__setup("overclock=", read_overclock);
+__setup("cpu_overclock=", read_cpu_overclock);
 
 enum hpgov_event {
 	HPGOV_SLACK_TIMER_EXPIRED = 1,	/* slack timer expired */
@@ -993,13 +993,13 @@ static int __init exynos_hpgov_parse_dt(void)
 		goto exit;
 	exynos_hpgov.maxfreq_table[SINGLE] = max_freq;
 
-	if (arg_overclock == 1) {
+	if (arg_cpu_overclock == 1) {
 		exynos_hpgov.maxfreq_table[DUAL] = 2314000;
 		exynos_hpgov.maxfreq_table[TRIPLE] = 1924000;
 		exynos_hpgov.maxfreq_table[QUAD] = 1924000;
 		exynos_hpgov.maxfreq_table[DISABLE] = 2314000;
 
-	} else if (arg_overclock == 2) {
+	} else if (arg_cpu_overclock == 2) {
 		exynos_hpgov.maxfreq_table[DUAL] = 2496000;
 		exynos_hpgov.maxfreq_table[TRIPLE] = 2002000;
 		exynos_hpgov.maxfreq_table[QUAD] = 2002000;
