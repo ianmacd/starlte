@@ -4,8 +4,8 @@
 ZIPFILE=$3
 OUTFD=$2
 
-lversion=4.9.132
-kversion=0.99.25
+lversion=4.9.133
+kversion=0.99.27
 build=1
 kname=APGK
 tagline='A pretty good kernel.'
@@ -29,6 +29,52 @@ if [ $? -eq 0 ]; then
   done
 fi
 
+get_key() {
+  local key=$( getevent -lqc 1  | awk '{ print $(NF-1) }' )
+  [ $key = 02bf ] && key=KEY_BIXBY
+
+  echo $key
+}
+
+q_and_a() {
+  q=$1
+  shift
+
+  # The strange formatting is to keep ui_print() happy.
+  #
+  choice="Vol Up   = $1\nui_print      Vol Down = $2\n"
+  [ -n "$3" ] && choice="Bixby    = $3\nui_print      $choice"
+
+  ui_print " "
+  ui_print " - $q"
+  ui_print "     $choice"
+
+  n=99
+  until [ $n -le $# ]; do
+    unset UP DOWN BIXBY
+    a=$(get_key)
+
+    case $a in
+      *UP)
+        UP=true
+        n=1
+        ;;
+      *DOWN)
+        DOWN=true
+        n=2
+        ;;
+      *BIXBY)
+        BIXBY=true
+        n=3
+        ;;
+      *)
+	n=99
+        ;;
+    esac
+
+  done
+}
+
 ui_print() {
   echo -ne "ui_print $1\n" >> /proc/self/fd/$OUTFD
   echo -ne "ui_print\n" >> /proc/self/fd/$OUTFD
@@ -49,7 +95,9 @@ print_justified() {
 }
 
 resolve_link() {
-  if [ -z "$1" ] || [ ! -e $1 ] ; then return 1 ; fi
+  if [ -z "$1" ] || [ ! -e $1 ]; then
+    return 1;
+  fi
   local VAR=$1
   while [ -L $VAR ]; do
     VAR=$(readlink $VAR)
@@ -108,16 +156,41 @@ if [ -z "$BOOT" ]; then
   exit 1
 fi
 
-# Read kernel choice from archive name, if applicable.
-#
 ZIPNAME=${ZIPFILE##*/}
-[ $ZIPNAME != ${ZIPNAME/_underclock//} ] && UNDERCLOCK=true
-[ $ZIPNAME != ${ZIPNAME/_overclock//} ] && OVERCLOCK=true
+[ $ZIPNAME != ${ZIPNAME/_interactive//} ] && INTERACTIVE=true
 
-# Otherwise, check for dotfiles to determine kernel choice.
-#
-[ -f /external_sd/.underclock ] && UNDERCLOCK=true
-[ -f /external_sd/.overclock ] && OVERCLOCK=true
+if [ "$INTERACTIVE" = true ]; then
+  ui_print " - Interactive installation requested."
+
+  # /system needed for getevent command.
+  #
+  awk '$2 == "/system" { exit 1 }' /proc/mounts && mount -o ro /system
+
+  q_and_a 'Type of kernel to install?' overclock underclock standard
+  [ -n "$UP" ] && OVERCLOCK=true
+  [ -n "$DOWN" ] && UNDERCLOCK=true
+
+  q_and_a 'Install Magisk afterwards?' yes no
+  [ -n "$UP" ] && MAGISK=true
+
+  umount /system
+
+  ui_print " "
+else
+  # Read kernel choice from archive name, if applicable.
+  #
+  [ $ZIPNAME != ${ZIPNAME/_underclock//} ] && UNDERCLOCK=true
+  [ $ZIPNAME != ${ZIPNAME/_overclock//} ] && OVERCLOCK=true
+  
+  # Otherwise, check for dotfiles to determine kernel choice.
+  #
+  [ -f /external_sd/.underclock ] && UNDERCLOCK=true
+  [ -f /external_sd/.overclock ] && OVERCLOCK=true
+
+  # Read desire to install Magisk from archive name, if applicable.
+  #
+  [ $ZIPNAME != ${ZIPNAME/_magisk//} ] && MAGISK=true
+fi
 
 # Now get to work.
 #
@@ -171,19 +244,17 @@ ui_print " - Flashing $image boot image onto $device..."
 
 ui_print " - Installation completed."
 
-# Read desire to install Magisk from archive name, if applicable.
-#
-[ $ZIPNAME != ${ZIPNAME/_magisk//} ] && MAGISK=true
-
 # Check for dotfile existence and install Magisk if present.
 #
 int=/sdcard/Download	# The standard download location on internal SD card.
 ext=/external_sd	# The external SD card, if present.
 
-# If .magisk exists at none of these locations and the APGK zip file doesn't
-# contain _magisk in the name, we are finished.
+# If .magisk exists at none of these locations, the APGK zip file doesn't
+# contain _magisk in the name and we didn't interactively request Magisk,
+# we are finished.
 #
-if [ ! -f $int/.magisk ] && [ ! -f $ext/.magisk ] && [ -z "$MAGISK" ]; then
+if ( ([ ! -f $int/.magisk ] && [ ! -f $ext/.magisk ]) || "$INTERACTIVE" = true) \
+  && [ -z "$MAGISK" ]; then
   ui_print " - You may now root the device at your discretion."
   ui_print " "
 
