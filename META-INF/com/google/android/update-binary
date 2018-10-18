@@ -217,7 +217,7 @@ chmod 755 $bspatch
 image=standard
 variant=""
 src_img=/tmp/boot-$kname-$lversion-$kversion-$build-g965.img
-g960_img=/tmp/boot-$kname-$lversion-$kversion-$build-g965.img
+g960_img=/tmp/boot-$kname-$lversion-$kversion-$build-g960.img
 
 if [ "$OVERCLOCK" = true ]; then
   image=overclock
