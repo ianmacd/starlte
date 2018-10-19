@@ -30,7 +30,8 @@ if [ $? -eq 0 ]; then
 fi
 
 get_key() {
-  local key=$( getevent -lqc 1  | awk '{ print $(NF-1) }' )
+  local key=$( LD_LIBRARY_PATH=/system/lib64 \
+                /system/bin/getevent -lqc 1  | awk '{ print $(NF-1) }' )
   [ $key = 02bf ] && key=KEY_BIXBY
 
   echo $key
@@ -42,8 +43,8 @@ q_and_a() {
 
   # The strange formatting is to keep ui_print() happy.
   #
-  local choice="Vol Up   = $1\nui_print      Vol Down = $2\n"
-  [ -n "$3" ] && choice="Bixby    = $3\nui_print      $choice"
+  local choice="[Vol Up]   = $1\nui_print      [Vol Down] = $2\n"
+  [ -n "$3" ] && choice="[Bixby]    = $3\nui_print      $choice"
 
   ui_print " "
   ui_print " - $q"
@@ -182,7 +183,7 @@ if [ $ZIPNAME != ${ZIPNAME/_interactive//} ] ||
 
   ui_print " "
 else
-  # Attempt to infer choice of kernel from archive name or dot-file.
+  # Attempt to infer choice of kernel from archive name or dotfile.
   #
   if [ $ZIPNAME != ${ZIPNAME/_underclock//} ] ||
     [ -f /external_sd/.apgk_underclock ]; then
@@ -257,7 +258,7 @@ int=/sdcard/Download	# The standard download location on internal SD card.
 ext=/external_sd	# The external SD card, if present.
 mfile=.apgk_magisk	# The name of the file to look for.
 
-# If .magisk exists at none of these locations, the APGK zip file doesn't
+# If $mfile exists at none of these locations, the APGK zip file doesn't
 # contain _magisk in the name and we didn't interactively request Magisk,
 # we are finished.
 #
