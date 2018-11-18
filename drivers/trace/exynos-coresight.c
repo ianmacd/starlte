@@ -60,7 +60,10 @@ struct cs_dbg {
 
 bool FLAG_T32_EN = false;
 static struct cs_dbg dbg;
+
+#ifdef CONFIG_HARDLOCKUP_DETECTOR_OTHER_CPU
 extern struct atomic_notifier_head hardlockup_notifier_list;
+#endif
 
 static inline void get_arm_arch_version(int cpu)
 {
@@ -212,6 +215,7 @@ static int exynos_cs_get_pc(int cpu, int iter)
 	return 0;
 }
 
+#ifdef CONFIG_HARDLOCKUP_DETECTOR_OTHER_CPU
 static int exynos_cs_lockup_handler(struct notifier_block *nb,
 					unsigned long l, void *core)
 {
@@ -243,6 +247,7 @@ static int exynos_cs_lockup_handler(struct notifier_block *nb,
 
 	return 0;
 }
+#endif
 
 static int exynos_cs_panic_handler(struct notifier_block *np,
 				unsigned long l, void *msg)
@@ -286,9 +291,11 @@ static int exynos_cs_panic_handler(struct notifier_block *np,
 	return 0;
 }
 
+#ifdef CONFIG_HARDLOCKUP_DETECTOR_OTHER_CPU
 static struct notifier_block exynos_cs_lockup_nb = {
 	.notifier_call = exynos_cs_lockup_handler,
 };
+#endif
 
 static struct notifier_block exynos_cs_panic_nb = {
 	.notifier_call = exynos_cs_panic_handler,
@@ -639,9 +646,11 @@ static int __init exynos_cs_init(void)
 
 	get_arm_arch_version(0);
 
-#ifdef CONFIG_EXYNOS_CORESIGHT_PC_INFO
+#ifdef CONFIG_HARDLOCKUP_DETECTOR_OTHER_CPU
 	atomic_notifier_chain_register(&hardlockup_notifier_list,
 			&exynos_cs_lockup_nb);
+#endif
+#ifdef CONFIG_EXYNOS_CORESIGHT_PC_INFO
 	atomic_notifier_chain_register(&panic_notifier_list,
 			&exynos_cs_panic_nb);
 	pr_info("[Exynos Coresight] Success Init.\n");
