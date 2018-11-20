@@ -147,7 +147,7 @@ if ! ( [ $model = G960 ] || [ $model = G965 ] &&
   exit 1
 fi
 
-ui_print " - Detected a $device device on $fw firmware."
+ui_print " - Detected a $device device with $fw bootloader."
 
 [ $suffix = N ] &&
   ui_print " - NOTE: '$suffix' device support is experimental."
