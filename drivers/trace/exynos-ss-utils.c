@@ -24,7 +24,7 @@
 #ifdef CONFIG_EXYNOS_SNAPSHOT_CRASH_KEY
 #include <linux/gpio_keys.h>
 #endif
-#ifdef CONFIG_TOUCHSCREEN_DUMP_MODE
+#if defined(CONFIG_TOUCHSCREEN_DUMP_MODE) && defined(CONFIG_SEC_DEBUG)
 struct tsp_dump_callbacks dump_callbacks;
 #endif
 
@@ -533,37 +533,49 @@ int exynos_ss_dump(void)
 					"mrs %1, S3_1_c15_c2_4\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "FEMERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, FEMERR0SR, reg1));
 				pr_auto(ASL5, "FEMERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, FEMERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("FEMERR0SR: %016lx, FEMERR1SR: %016lx\n", reg1, reg2);
+			}
 
 			asm ("mrs %0, S3_1_c15_c2_1\n\t"
 					"mrs %1, S3_1_c15_c2_5\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "LSMERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, LSMERR0SR, reg1));
 				pr_auto(ASL5, "LSMERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, LSMERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("LSMERR0SR: %016lx, LSMERR1SR: %016lx\n", reg1, reg2);
+			}
 
 			asm ("mrs %0, S3_1_c15_c2_2\n\t"
 					"mrs %1, S3_1_c15_c2_6\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "TBWMERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, TBWMERR0SR, reg1));
 				pr_auto(ASL5, "TBWMERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, TBWMERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("TBWMERR0SR: %016lx, TBWMERR1SR: %016lx\n", reg1, reg2);
+			}
 
 			asm ("mrs %0, S3_1_c15_c2_3\n\t"
 					"mrs %1, S3_1_c15_c2_7\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "L2MERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, L2MERR0SR, reg1));
 				pr_auto(ASL5, "L2MERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, L2MERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("L2MERR0SR: %016lx, L2MERR1SR: %016lx\n", reg1, reg2);
+			}
 
 			/* L3 MERR */
 			asm ("msr S3_1_c15_c7_1, %0\n\t"
@@ -573,10 +585,13 @@ int exynos_ss_dump(void)
 					"mrs %1, S3_1_c15_c3_4\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "BANK0 L3MERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR0SR, reg1));
 				pr_auto(ASL5, "BANK0 L3MERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("BANK0 L3MERR0SR: %016lx, L3MERR1SR: %016lx\n", reg1, reg2);
+			}
 			asm ("msr S3_1_c15_c7_1, %0\n\t"
 					"isb\n"
 					:: "r" (1));
@@ -584,10 +599,13 @@ int exynos_ss_dump(void)
 					"mrs %1, S3_1_c15_c3_4\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "BANK1 L3MERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR0SR, reg1));
 				pr_auto(ASL5, "BANK1 L3MERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("BANK1 L3MERR0SR: %016lx, L3MERR1SR: %016lx\n", reg1, reg2);
+			}
 			asm ("msr S3_1_c15_c7_1, %0\n\t"
 					"isb\n"
 					:: "r" (2));
@@ -595,10 +613,13 @@ int exynos_ss_dump(void)
 					"mrs %1, S3_1_c15_c3_4\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "BANK2 L3MERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR0SR, reg1));
 				pr_auto(ASL5, "BANK2 L3MERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("BANK2 L3MERR0SR: %016lx, L3MERR1SR: %016lx\n", reg1, reg2);
+			}
 			asm ("msr S3_1_c15_c7_1, %0\n\t"
 					"isb\n"
 					:: "r" (3));
@@ -606,10 +627,13 @@ int exynos_ss_dump(void)
 					"mrs %1, S3_1_c15_c3_4\n"
 					: "=r" (reg1), "=r" (reg2));
 			if (reg1 || reg2) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "BANK3 L3MERR0SR: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR0SR, reg1));
 				pr_auto(ASL5, "BANK3 L3MERR1SR: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_MEERKAT, L3MERR1SR, reg2));
-			} else
+#endif
+			} else {
 				pr_emerg("BANK3 L3MERR0SR: %016lx, L3MERR1SR: %016lx\n", reg1, reg2);
+			}
 			break;
 		default:
 			break;
@@ -626,10 +650,13 @@ int exynos_ss_dump(void)
 		case ARM_CPU_PART_ANANKE:
 			asm ("HINT #16");
 			asm ("mrs %0, S3_0_c12_c1_1\n" : "=r" (reg1)); /* read DISR_EL1 */
-			if (reg1)
+			if (reg1) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "DISR_EL1: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_ANANKE, DISR_EL1, reg1));
-			else
+#endif
+			} else {
 				pr_emerg("DISR_EL1: %016lx\n", reg1);
+			}
 
 			asm ("msr S3_0_c5_c3_1, %0\n"  :: "r" (0)); /* set 1st ERRSELR_EL1 */
 
@@ -638,12 +665,15 @@ int exynos_ss_dump(void)
 					"mrs %2, S3_0_c5_c5_0\n"
 					: "=r" (reg1), "=r" (reg2), "=r" (reg3));
 			if (reg1 || reg2 || reg3) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "1st : ERXSTATUS_EL1: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_ANANKE, ERR0STATUS, reg1));
 				pr_auto(ASL5, "1st : ERXADDR_EL1: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_ANANKE, ERR0ADDR, reg2));
 				pr_auto(ASL5, "1st : ERXMISC0_EL1: %016lx %s\n", reg3, verbose_reg(ARM_CPU_PART_ANANKE, ERR0MISC0, reg3));
-			} else
+#endif
+			} else {
 				pr_emerg("1st : ERXSTATUS_EL1: %016lx, ERXADDR_EL1: %016lx, "
 						"ERXMISC0_EL1: %016lx\n", reg1, reg2, reg3);
+			}
 
 			asm ("msr S3_0_c5_c3_1, %0\n"  :: "r" (1)); /* set 2nd ERRSELR_EL1 */
 
@@ -652,12 +682,15 @@ int exynos_ss_dump(void)
 					"mrs %2, S3_0_c5_c5_0\n"
 					: "=r" (reg1), "=r" (reg2), "=r" (reg3));
 			if (reg1 || reg2 || reg3) {
+#ifdef CONFIG_SEC_DEBUG
 				pr_auto(ASL5, "2nd : ERXSTATUS_EL1: %016lx %s\n", reg1, verbose_reg(ARM_CPU_PART_ANANKE, ERR1STATUS, reg1));
 				pr_auto(ASL5, "2nd : ERXADDR_EL1: %016lx %s\n", reg2, verbose_reg(ARM_CPU_PART_ANANKE, ERR1ADDR, reg2));
 				pr_auto(ASL5, "2nd : ERXMISC0_EL1: %016lx %s\n", reg3, verbose_reg(ARM_CPU_PART_ANANKE, ERR1MISC0, reg3));
-			} else
+#endif
+			} else {
 				pr_emerg("2nd : ERXSTATUS_EL1: %016lx, ERXADDR_EL1: %016lx, "
 						"ERXMISC0_EL1: %016lx\n", reg1, reg2, reg3);
+			}
 			break;
 		default:
 			break;
@@ -869,6 +902,7 @@ static void exynos_ss_dump_task_info(void)
 }
 
 #ifdef CONFIG_EXYNOS_SNAPSHOT_CRASH_KEY
+#ifdef CONFIG_SEC_DEBUG
 static int exynos_ss_check_crash_key(struct notifier_block *nb,
 				     unsigned long c, void *v)
 {
@@ -940,6 +974,7 @@ static int exynos_ss_check_crash_key(struct notifier_block *nb,
 static struct notifier_block nb_gpio_keys = {
 	.notifier_call = exynos_ss_check_crash_key
 };
+#endif
 #endif
 
 static int exynos_ss_reboot_handler(struct notifier_block *nb,

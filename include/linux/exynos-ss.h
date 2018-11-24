@@ -36,7 +36,6 @@ extern int exynos_ss_post_panic(void);
 extern int exynos_ss_post_reboot(char *cmd);
 extern int exynos_ss_set_hardlockup(int);
 extern int exynos_ss_get_hardlockup(void);
-extern unsigned int exynos_ss_get_item_size(char *);
 extern unsigned long exynos_ss_get_item_vaddr(char *name);
 extern unsigned int exynos_ss_get_item_paddr(char *);
 extern bool exynos_ss_dumper_one(void *, char *, size_t, size_t *);
@@ -160,6 +159,7 @@ extern int s3c2410wdt_set_emergency_stop(int index);
 extern int s3c2410wdt_set_emergency_reset(unsigned int timeout, int index);
 extern int s3c2410wdt_keepalive_emergency(bool reset, int index);
 extern void s3c2410wdt_reset_confirm(unsigned long mtime, int index);
+extern unsigned int exynos_ss_get_item_size(char *);
 #else
 #define s3c2410wdt_set_emergency_stop(a) 	(-1)
 #define s3c2410wdt_set_emergency_reset(a, b)	do { } while (0)
@@ -174,7 +174,7 @@ extern void s3c2410wdt_reset_confirm(unsigned long mtime, int index);
 #define exynos_ss_clockevent(a, b, c)	do { } while (0)
 #define exynos_ss_cpuidle(a, b, c, d)	do { } while (0)
 #define exynos_ss_suspend(a, b, c)	do { } while (0)
-#define exynos_ss_regulator(a, b, c, d)	do { } while (0)
+#define exynos_ss_regulator(a, b, c, d, e, f)	do { } while (0)
 #define exynos_ss_thermal(a, b, c, d)	do { } while (0)
 #define exynos_ss_irq(a, b, c, d)	do { } while (0)
 #define exynos_ss_irq_exit(a, b)	do { } while (0)
@@ -204,8 +204,8 @@ extern void s3c2410wdt_reset_confirm(unsigned long mtime, int index);
 #define exynos_ss_post_reboot(a)	do { } while (0)
 #define exynos_ss_set_hardlockup(a)	do { } while (0)
 #define exynos_ss_get_hardlockup()	do { } while (0)
-#define exynos_ss_get_item_size(a)	do { } while (0)
-#define exynos_ss_get_item_paddr(a)	do { } while (0)
+#define exynos_ss_get_item_size(a)	(0)
+#define exynos_ss_get_item_paddr(a)	(0)
 #define exynos_ss_check_crash_key(a, b)	do { } while (0)
 #define exynos_ss_dm(a, b, c, d, e)	do { } while (0)
 #define exynos_ss_panic_handler_safe(a)	do { } while (0)

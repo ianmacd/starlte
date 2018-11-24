@@ -317,6 +317,7 @@ struct sec_debug_shared_info {
 	/* ksymbol information */
 	struct sec_debug_ksyms ksyms;
 
+#ifdef CONFIG_SEC_DEBUG_EXTRA_INFO
 	/* reset reason extra info for bigdata */
 	struct sec_debug_panic_extra_info sec_debug_extra_info;
 
@@ -325,6 +326,7 @@ struct sec_debug_shared_info {
 
 	/* reset reason extrf info for bigdata */
 	struct sec_debug_pmudbg_extra_info sec_debug_extra_info_pmudbg;
+#endif
 
 	/* last 1KB of kernel log */
 	char last_klog[SZ_1K];
@@ -562,10 +564,12 @@ struct sec_debug_summary {
 };
 
 extern void sec_debug_task_sched_log_short_msg(char *msg);
+#ifdef CONFIG_SEC_DEBUG
 extern void sec_debug_task_sched_log(int cpu, struct task_struct *task);
 extern void sec_debug_irq_sched_log(unsigned int irq, void *fn, int en);
 extern void sec_debug_irq_enterexit_log(unsigned int irq,
 						unsigned long long start_time);
+#endif
 extern void sec_debug_set_kallsyms_info(struct sec_debug_ksyms *ksyms, int magic);
 
 int sec_debug_save_cpu_info(void);

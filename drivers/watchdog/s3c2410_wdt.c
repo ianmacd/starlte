@@ -1308,7 +1308,9 @@ static void s3c2410wdt_shutdown(struct platform_device *dev)
 {
 #ifdef CONFIG_S3C2410_SHUTDOWN_REBOOT
 	pr_emerg("%s: watchdog is still alive\n", __func__);
+#ifdef CONFIG_EXYNOS_SNAPSHOT_WATCHDOG_RESET
 	s3c2410wdt_keepalive_emergency(true, 0);
+#endif
 #else
 	struct s3c2410_wdt *wdt = platform_get_drvdata(dev);
 

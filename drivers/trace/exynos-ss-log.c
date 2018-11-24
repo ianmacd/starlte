@@ -867,7 +867,7 @@ void exynos_ss_task(int cpu, void *v_task)
 		strncpy(ess_log->task[cpu][i].task_comm,
 			ess_log->task[cpu][i].task->comm,
 			TASK_COMM_LEN - 1);
-#ifdef CONFIG_SEC_DUMP_SUMMARY
+#if defined(CONFIG_SEC_DUMP_SUMMARY) && defined(CONFIG_SEC_DEBUG)
 		sec_debug_task_sched_log(cpu, v_task);
 #endif
 	}
@@ -1160,7 +1160,7 @@ void exynos_ss_irq_exit(unsigned int irq, unsigned long long start_time)
 			ess_log->irq_exit[cpu][i].end_time = time;
 			ess_log->irq_exit[cpu][i].time = start_time;
 			ess_log->irq_exit[cpu][i].irq = irq;
-#ifdef CONFIG_SEC_DUMP_SUMMARY
+#if defined(CONFIG_SEC_DUMP_SUMMARY) && defined(CONFIG_SEC_DEBUG)
 			sec_debug_irq_enterexit_log(irq, start_time);
 #endif
 		} else
