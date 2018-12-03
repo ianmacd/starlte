@@ -217,7 +217,9 @@ static ssize_t show_recovery_cause(struct device *dev, struct device_attribute *
 	if (!recovery_cause_offset)
 		return 0;
 
+#ifdef CONFIG_SEC_PARAM
 	sec_get_param_str(recovery_cause_offset, buf);
+#endif
 	pr_info("%s: %s\n", __func__, buf);
 
 	return strlen(buf);
@@ -238,7 +240,9 @@ static ssize_t store_recovery_cause(struct device *dev, struct device_attribute 
 	}
 	strncat(recovery_cause, buf, strlen(buf));
 
+#ifdef CONFIG_SEC_PARAM
 	sec_set_param_str(recovery_cause_offset, recovery_cause, sizeof(recovery_cause));
+#endif
 	pr_info("%s: %s, count:%d\n", __func__, recovery_cause, (int)count);
 
 	return count;

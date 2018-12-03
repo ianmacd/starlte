@@ -49,6 +49,7 @@ extern void exynos_ss_hook_hardlockup_exit(void);
 extern void exynos_ss_dump_sfr(void);
 extern int exynos_ss_hook_pmsg(char *buffer, size_t count);
 extern void exynos_ss_save_log(int cpu, unsigned long where);
+extern unsigned int exynos_ss_get_item_size(char *);
 
 /* option */
 #ifdef CONFIG_EXYNOS_SNAPSHOT_ACPM
@@ -153,13 +154,11 @@ extern void exynos_ss_irq_exit(unsigned int irq, unsigned long long start_time);
 #define exynos_ss_irq_exit_var(v)	do { v = 0; } while (0)
 #endif
 
-
 #if defined(CONFIG_S3C2410_WATCHDOG) && defined(CONFIG_EXYNOS_SNAPSHOT_WATCHDOG_RESET)
 extern int s3c2410wdt_set_emergency_stop(int index);
 extern int s3c2410wdt_set_emergency_reset(unsigned int timeout, int index);
 extern int s3c2410wdt_keepalive_emergency(bool reset, int index);
 extern void s3c2410wdt_reset_confirm(unsigned long mtime, int index);
-extern unsigned int exynos_ss_get_item_size(char *);
 #else
 #define s3c2410wdt_set_emergency_stop(a) 	(-1)
 #define s3c2410wdt_set_emergency_reset(a, b)	do { } while (0)
