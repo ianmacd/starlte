@@ -364,11 +364,13 @@ static ssize_t sec_hw_param_pcb_info_store(struct kobject *kobj,
 					   const char *buf, size_t count)
 {
 	unsigned char barcode[6] = {0,};
+#ifdef CONFIG_SEC_PARAM
+	int ret = -1;
+#endif
 
 	strncpy(barcode, buf, 5);
 
 #ifdef CONFIG_SEC_PARAM
-	int ret = -1;
 	ret = sec_set_param_str(pcb_offset, barcode, 5);
 	if (ret < 0)
 		pr_err("%s : Set Param fail. offset (%lu), data (%s)", __func__, pcb_offset, barcode);
@@ -381,12 +383,14 @@ static ssize_t sec_hw_param_smd_info_store(struct kobject *kobj,
 					   struct kobj_attribute *attr,
 					   const char *buf, size_t count)
 {
+#ifdef CONFIG_SEC_PARAM
 	unsigned char smd_date[9] = {0,};
+	int ret = -1;
+#endif
 
 	strncpy(smd_date, buf, 8);
 
 #ifdef CONFIG_SEC_PARAM
-	int ret = -1;
 	ret = sec_set_param_str(smd_offset, smd_date, 8);
 	if (ret < 0)
 		pr_err("%s : Set Param fail. offset (%lu), data (%s)", __func__, smd_offset, smd_date);
