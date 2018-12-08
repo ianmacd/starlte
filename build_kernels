@@ -1,0 +1,198 @@
+#!/bin/sh -x
+
+rm_version() {
+  [ -f .version ] && rm .version
+}
+
+build() {
+  kconfigure() {
+    feature=$1
+    value=$2
+
+    sed -i -e 's/^.*CONFIG_'$feature'=.\+$/CONFIG_'$feature'="'"$value"'"/' .config
+  }
+
+  kenable() {
+    feature=$1
+
+    sed -i -e "s/^.*CONFIG_$feature.\+$/CONFIG_$feature=y/" .config
+  }
+
+  kdisable() {
+    feature=$1
+
+    sed -i -e "s/^.*CONFIG_$feature.\+$/# CONFIG_$feature is not set/" .config
+  }
+
+  pack_boot_img() {
+    variant=$1
+  
+    cp -p $archdir/boot/Image $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-zImage || exit 1
+    cp -p $archdir/boot/dtb.img $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-dtb || exit 1
+    cd $imgdir/$dev/$firmware/AIK-Linux
+    ./repackimg.sh || exit 1
+    mv image-new.img $imgdir/$dev/boot-$my_kernel-$linux_v-$my_ver$variant-$build-$dev.img
+    cd -
+  }
+
+  dev=$1
+  config=$2
+
+  echo Make $dev standard...
+  rm_version; make clean && make $config
+  sed -i 's/^CONFIG_LOCALVERSION=.\+$/CONFIG_LOCALVERSION="'-$my_kernel-$my_ver'"/' .config
+  make -j$(nproc)
+ 
+  pack_boot_img
+  
+  echo Make $dev overclock...
+  kenable MALI_OVERCLOCK
+  kenable PELT_HALFLIFE_8
+  kdisable PELT_HALFLIFE_16
+  kconfigure LOCALVERSION "-$my_kernel-$my_ver-oc"
+  kconfigure CMDLINE "$cmd_oc"
+  rm_version; echo 2 | make oldconfig
+  make -j$(nproc)
+
+  pack_boot_img -oc
+  
+  echo Make $dev underclock...
+  kdisable MALI_OVERCLOCK
+  kdisable PELT_HALFLIFE_8
+  kenable PELT_HALFLIFE_16
+  kconfigure LOCALVERSION "-$my_kernel-$my_ver-uc"
+  kconfigure CMDLINE "$cmd_uc"
+  rm_version #; echo 2 | make oldconfig
+  make -j$(nproc)
+
+  pack_boot_img -uc
+}
+
+package() {
+  update_bin=$zipdir/META-INF/com/google/android/update-binary
+
+  sed -i -e "s/^lversion=.\+$/lversion=$linux_v/" \
+	 -e "s/^kversion=.\+$/kversion=$my_ver/" \
+         -e "s/^build=.\+$/build=$build/" \
+         -e "s/^tagline=.\*$/tagline=$build/" $update_bin
+
+  rm -f $zipdir/*.{img,bsdiff}
+  cp -p $imgdir/g965/boot-APGK-$linux_v-$my_ver-$build-g965.img $zipdir ||
+    exit 1
+
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
+	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-oc-$build-g965.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-oc-$build-g965.img.bsdiff &
+
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
+	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-uc-$build-g965.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-uc-$build-g965.img.bsdiff &
+
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-$build-g960.img.bsdiff &
+
+  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-oc-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-oc-$build-g960.img.bsdiff &
+
+  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-uc-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-uc-$build-g960.img.bsdiff &
+
+  wait
+
+  rm -f $stagedir/APGK-$my_ver-$build.zip
+  cd $zipdir
+  7za a -tzip -x'!.*' -mx9 $stagedir/APGK-$my_ver-$build.zip
+}
+
+root=~/src
+stagedir=$root/apgk
+imgdir=$stagedir/img
+zipdir=$stagedir/zip
+archdir=arch/arm64
+
+linux_v=$(make kernelversion 2>/dev/null)
+my_kernel=APGK
+my_ver=0.99.34
+firmware=brj6
+build=1
+tagline='A pretty good kernel.'
+
+argv=$( getopt -o anp --long all,g960,g965,no-package,package-only -n build_kernels -- "$@" )
+
+eval set -- "$argv"
+
+while :; do
+  case "$1" in
+    -a|--all)
+      echo Option $1.
+      shift
+      build_g960=true
+      build_g965=true
+      continue
+      ;;
+    --g965)
+      echo Option $1.
+      shift
+      build_g965=true
+      continue
+      ;;
+    --g960)
+      echo Option $1.
+      shift
+      build_g960=true
+      continue
+      ;;
+    -n|--no-package)
+      echo Option $1.
+      shift
+      no_package=true
+      continue
+      ;;
+    -p|--package-only)
+      echo Option $1.
+      shift
+      package_only=true
+      continue
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo getopt error!
+      echo $1
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$build_g960" ] && [ -z "$build_g965" ] &&
+   [ -z "$package_only" ]; then
+  echo Must use at least one of: -a --g960 --g965 -p >&2
+  exit 1
+fi
+
+
+if [[ "$1" == [0-9]* ]]; then
+  build=$1
+  shift
+fi
+
+cmd_oc='cpu_overclock=2 gpu_overclock=y cpu_max_c1=2002000 cpu_max_c2=2964000'
+cmd_uc='cpu_max_c2=2314000'
+
+if [ -n "$package_only" ]; then
+  package
+  exit 0
+fi
+
+sudo -p 'sudo needed for packing boot images. Enter password: ' echo
+[ -n "$build_g965" ] && build g965 exynos9810-star2lte_calikernel_defconfig
+[ -n "$build_g960" ] && build g960 exynos9810-starlte_calikernel_defconfig
+
+if [ -z "$no_package" ]; then
+  package
+fi
