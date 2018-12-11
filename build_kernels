@@ -6,26 +6,26 @@ rm_version() {
 
 build() {
   kconfigure() {
-    feature=$1
-    value=$2
+    local feature=$1
+    local value=$2
 
     sed -i -e 's/^.*CONFIG_'$feature'=.\+$/CONFIG_'$feature'="'"$value"'"/' .config
   }
 
   kenable() {
-    feature=$1
+    local feature=$1
 
     sed -i -e "s/^.*CONFIG_$feature.\+$/CONFIG_$feature=y/" .config
   }
 
   kdisable() {
-    feature=$1
+    local feature=$1
 
     sed -i -e "s/^.*CONFIG_$feature.\+$/# CONFIG_$feature is not set/" .config
   }
 
   pack_boot_img() {
-    variant=$1
+    local variant=$1
   
     cp -p $archdir/boot/Image $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-zImage || exit 1
     cp -p $archdir/boot/dtb.img $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-dtb || exit 1
@@ -35,37 +35,44 @@ build() {
     cd -
   }
 
-  dev=$1
-  config=$2
+  local dev=$1
+  local config=$2
+  local eng=$3
 
-  echo Make $dev standard...
+  echo Make $dev standard$ENG...
   rm_version; make clean && make $config
   sed -i 's/^CONFIG_LOCALVERSION=.\+$/CONFIG_LOCALVERSION="'-$my_kernel-$my_ver'"/' .config
-  make -j$(nproc)
  
-  pack_boot_img
+  if [ -n "$eng" ]; then
+    # Enable engineering options.
+    kenable ASSISTED_SUPERUSER
+  fi
+
+  make -j$(nproc) || exit 1
+
+  pack_boot_img $ENG
   
-  echo Make $dev overclock...
+  echo Make $dev overclock$ENG...
   kenable MALI_OVERCLOCK
   kenable PELT_HALFLIFE_8
   kdisable PELT_HALFLIFE_16
   kconfigure LOCALVERSION "-$my_kernel-$my_ver-oc"
   kconfigure CMDLINE "$cmd_oc"
   rm_version; echo 2 | make oldconfig
-  make -j$(nproc)
+  make -j$(nproc) || exit 1
 
-  pack_boot_img -oc
+  pack_boot_img -oc$ENG
   
-  echo Make $dev underclock...
+  echo Make $dev underclock$ENG...
   kdisable MALI_OVERCLOCK
   kdisable PELT_HALFLIFE_8
   kenable PELT_HALFLIFE_16
   kconfigure LOCALVERSION "-$my_kernel-$my_ver-uc"
   kconfigure CMDLINE "$cmd_uc"
   rm_version #; echo 2 | make oldconfig
-  make -j$(nproc)
+  make -j$(nproc) || exit 1
 
-  pack_boot_img -uc
+  pack_boot_img -uc$ENG
 }
 
 package() {
@@ -77,34 +84,34 @@ package() {
          -e "s/^tagline=.\*$/tagline=$build/" $update_bin
 
   rm -f $zipdir/*.{img,bsdiff}
-  cp -p $imgdir/g965/boot-APGK-$linux_v-$my_ver-$build-g965.img $zipdir ||
+  cp -p $imgdir/g965/boot-APGK-$linux_v-$my_ver$ENG-$build-g965.img $zipdir ||
     exit 1
 
-  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
-	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-oc-$build-g965.img \
-	 $zipdir/boot-APGK-$linux_v-$my_ver-oc-$build-g965.img.bsdiff &
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver$ENG-$build-g965.img \
+	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-oc$ENG-$build-g965.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-oc$ENG-$build-g965.img.bsdiff &
 
-  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
-	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-uc-$build-g965.img \
-	 $zipdir/boot-APGK-$linux_v-$my_ver-uc-$build-g965.img.bsdiff &
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver$ENG-$build-g965.img \
+	 $imgdir/g965/boot-APGK-$linux_v-$my_ver-uc$ENG-$build-g965.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-uc$ENG-$build-g965.img.bsdiff &
 
-  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver-$build-g965.img \
-	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
-	 $zipdir/boot-APGK-$linux_v-$my_ver-$build-g960.img.bsdiff &
+  bsdiff $zipdir/boot-APGK-$linux_v-$my_ver$ENG-$build-g965.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver$ENG-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver$ENG-$build-g960.img.bsdiff &
 
-  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
-	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-oc-$build-g960.img \
-	 $zipdir/boot-APGK-$linux_v-$my_ver-oc-$build-g960.img.bsdiff &
+  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver$ENG-$build-g960.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-oc$ENG-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-oc$ENG-$build-g960.img.bsdiff &
 
-  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver-$build-g960.img \
-	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-uc-$build-g960.img \
-	 $zipdir/boot-APGK-$linux_v-$my_ver-uc-$build-g960.img.bsdiff &
+  bsdiff $imgdir/g960/boot-APGK-$linux_v-$my_ver$ENG-$build-g960.img \
+	 $imgdir/g960/boot-APGK-$linux_v-$my_ver-uc$ENG-$build-g960.img \
+	 $zipdir/boot-APGK-$linux_v-$my_ver-uc$ENG-$build-g960.img.bsdiff &
 
   wait
 
-  rm -f $stagedir/APGK-$my_ver-$build.zip
+  rm -f $stagedir/APGK-$my_ver$ENG-$build.zip
   cd $zipdir
-  7za a -tzip -x'!.*' -mx9 $stagedir/APGK-$my_ver-$build.zip
+  7za a -tzip -x'!.*' -mx9 $stagedir/APGK-$my_ver$ENG-$build.zip
 }
 
 root=~/src
@@ -120,7 +127,7 @@ firmware=brj6
 build=1
 tagline='A pretty good kernel.'
 
-argv=$( getopt -o anp --long all,g960,g965,no-package,package-only -n build_kernels -- "$@" )
+argv=$( getopt -o aenp --long all,eng,g960,g965,no-package,package-only -n build_kernels -- "$@" )
 
 eval set -- "$argv"
 
@@ -131,6 +138,13 @@ while :; do
       shift
       build_g960=true
       build_g965=true
+      continue
+      ;;
+    -e|--eng|--engineering)
+      echo Option $1.
+      shift
+      eng=true
+      ENG=-ENG
       continue
       ;;
     --g965)
@@ -175,7 +189,6 @@ if [ -z "$build_g960" ] && [ -z "$build_g965" ] &&
   exit 1
 fi
 
-
 if [[ "$1" == [0-9]* ]]; then
   build=$1
   shift
@@ -190,8 +203,8 @@ if [ -n "$package_only" ]; then
 fi
 
 sudo -p 'sudo needed for packing boot images. Enter password: ' echo
-[ -n "$build_g965" ] && build g965 exynos9810-star2lte_calikernel_defconfig
-[ -n "$build_g960" ] && build g960 exynos9810-starlte_calikernel_defconfig
+[ -n "$build_g965" ] && build g965 exynos9810-star2lte_calikernel_defconfig $eng
+[ -n "$build_g960" ] && build g960 exynos9810-starlte_calikernel_defconfig $eng
 
 if [ -z "$no_package" ]; then
   package
