@@ -4,8 +4,8 @@
 ZIPFILE=$3
 OUTFD=$2
 
-lversion=4.9.135
-kversion=0.99.31
+lversion=4.9.144
+kversion=0.99.34
 build=1
 kname=APGK
 tagline='A pretty good kernel.'
@@ -162,6 +162,10 @@ fi
 
 ZIPNAME=${ZIPFILE##*/}
 
+# Check for engineering kernel.
+#
+[ $ZIPNAME != ${ZIPNAME/-ENG//} ] && ENG=-ENG
+
 if [ $ZIPNAME != ${ZIPNAME/_interactive//} ] ||
   [ -f /external_sd/.apgk_interactive ]; then
   INTERACTIVE=true
@@ -172,7 +176,7 @@ if [ $ZIPNAME != ${ZIPNAME/_interactive//} ] ||
   #
   awk '$2 == "/system" { exit 1 }' /proc/mounts && mount -o ro /system
 
-  q_and_a 'Type of kernel to install?' overclock underclock standard
+  q_and_a 'Type of kernel to install?' overclock$ENG underclock$ENG standard$ENG
   [ -n "$UP" ] && OVERCLOCK=true
   [ -n "$DOWN" ] && UNDERCLOCK=true
 
@@ -202,12 +206,12 @@ fi
 
 # Now get to work.
 #
-for i in boot-$kname-$lversion-$kversion-$build-g965.img \
-	 boot-$kname-$lversion-$kversion-oc-$build-g965.img.bsdiff \
-	 boot-$kname-$lversion-$kversion-uc-$build-g965.img.bsdiff \
-	 boot-$kname-$lversion-$kversion-$build-g960.img.bsdiff \
-	 boot-$kname-$lversion-$kversion-oc-$build-g960.img.bsdiff \
-	 boot-$kname-$lversion-$kversion-uc-$build-g960.img.bsdiff \
+for i in boot-$kname-$lversion-$kversion$ENG-$build-g965.img \
+	 boot-$kname-$lversion-$kversion-oc$ENG-$build-g965.img.bsdiff \
+	 boot-$kname-$lversion-$kversion-uc$ENG-$build-g965.img.bsdiff \
+	 boot-$kname-$lversion-$kversion$ENG-$build-g960.img.bsdiff \
+	 boot-$kname-$lversion-$kversion-oc$ENG-$build-g960.img.bsdiff \
+	 boot-$kname-$lversion-$kversion-uc$ENG-$build-g960.img.bsdiff \
 	 bspatch; do
   unzip_file $i /tmp/$i
 done
@@ -217,8 +221,8 @@ chmod 755 $bspatch
 
 image=standard
 variant=""
-src_img=/tmp/boot-$kname-$lversion-$kversion-$build-g965.img
-g960_img=/tmp/boot-$kname-$lversion-$kversion-$build-g960.img
+src_img=/tmp/boot-$kname-$lversion-$kversion$ENG-$build-g965.img
+g960_img=/tmp/boot-$kname-$lversion-$kversion$ENG-$build-g960.img
 
 if [ "$OVERCLOCK" = true ]; then
   image=overclock
@@ -229,10 +233,10 @@ elif [ "$UNDERCLOCK" = true ]; then
 fi
 
 lmodel=$( echo $model | tr '[A-Z]' '[a-z]' )
-dst_img=/tmp/boot-$kname-$lversion-$kversion$variant-$build-$lmodel.img
+dst_img=/tmp/boot-$kname-$lversion-$kversion$variant$ENG-$build-$lmodel.img
 
 if [ -f $dst_img.bsdiff ]; then
-  ui_print " - Constructing $image kernel for $device..."
+  ui_print " - Constructing $image$ENG kernel for $device..."
 
   if [ $model = G960 ] && [ -n "$variant" ]; then
     # First produce the standard G960F image, because the oc and uc deltas
@@ -245,7 +249,7 @@ if [ -f $dst_img.bsdiff ]; then
   [ -f $dst_img ] || $bspatch $src_img $dst_img $dst_img.bsdiff
 fi
 
-ui_print " - Flashing $image boot image onto $device..."
+ui_print " - Flashing $image$ENG boot image onto $device..."
 [ -n "$debug" ] && ui_print " - dd if=$dst_img of=$BOOT"
 
 /sbin/dd if=$dst_img of=$BOOT 
