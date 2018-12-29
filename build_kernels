@@ -122,7 +122,7 @@ archdir=arch/arm64
 
 linux_v=$(make kernelversion 2>/dev/null)
 my_kernel=APGK
-my_ver=0.99.38
+my_ver=0.99.39
 firmware=brj6
 build=1
 tagline='A pretty good kernel.'
@@ -203,6 +203,11 @@ if [ -n "$package_only" ]; then
 fi
 
 sudo -p 'sudo needed for packing boot images. Enter password: ' echo
+
+# Force check of WireGuard version.
+#
+rm -f net/wireguard/.check
+
 [ -n "$build_g965" ] && build g965 exynos9810-star2lte_calikernel_defconfig $eng
 [ -n "$build_g960" ] && build g960 exynos9810-starlte_calikernel_defconfig $eng
 
