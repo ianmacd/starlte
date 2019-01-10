@@ -4,8 +4,8 @@
 ZIPFILE=$3
 OUTFD=$2
 
-lversion=4.9.148
-kversion=1.0.1
+lversion=4.9.149
+kversion=1.0.2
 build=1
 kname=APGK
 tagline='A pretty good kernel.'
