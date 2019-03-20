@@ -40,6 +40,8 @@ build() {
   local eng=$3
 
   echo Make $dev standard$ENG...
+
+  export ANDROID_MAJOR_VERSION=o
   rm_version; make clean && make $config
   kconfigure LOCALVERSION "-$my_kernel-$my_ver$ENG"
  
