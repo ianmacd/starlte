@@ -398,6 +398,13 @@ static void exynos4_mct_tick_start(unsigned long cycles, int periodic,
 	exynos4_mct_write(tmp, mevt->base + MCT_L_TCON_OFFSET);
 }
 
+static void exynos4_mct_tick_clear(struct mct_clock_event_device *mevt)
+{
+	/* Clear the MCT tick interrupt */
+	if (readl_relaxed(reg_base + mevt->base + MCT_L_INT_CSTAT_OFFSET) & 1)
+		exynos4_mct_write(0x1, mevt->base + MCT_L_INT_CSTAT_OFFSET);
+}
+
 static int exynos4_tick_set_next_event(unsigned long cycles,
 				       struct clock_event_device *evt)
 {
@@ -414,6 +421,7 @@ static int set_state_shutdown(struct clock_event_device *evt)
 
 	mevt = container_of(evt, struct mct_clock_event_device, evt);
 	exynos4_mct_tick_stop(mevt, 1);
+	exynos4_mct_tick_clear(mevt);
 	return 0;
 }
 
@@ -446,7 +454,15 @@ static irqreturn_t exynos4_mct_tick_isr(int irq, void *dev_id)
 	struct mct_clock_event_device *mevt = dev_id;
 	struct clock_event_device *evt = &mevt->evt;
 
-	exynos4_mct_tick_stop(mevt, 0);
+	/*
+	 * This is for supporting oneshot mode.
+	 * Mct would generate interrupt periodically
+	 * without explicit stopping.
+	 */
+	if (!clockevent_state_periodic(&mevt->evt))
+		exynos4_mct_tick_stop(mevt, 0);
+
+	exynos4_mct_tick_clear(mevt);
 
 	evt->event_handler(evt);
 
