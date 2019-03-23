@@ -4,8 +4,8 @@
 ZIPFILE=$3
 OUTFD=$2
 
-lversion=4.9.164
-kversion=1.0.17
+lversion=4.9.165
+kversion=1.0.18
 build=1
 kname=APGK
 tagline='A pretty good kernel.'
@@ -170,7 +170,7 @@ if [ $ZIPNAME != ${ZIPNAME/_interactive//} ] ||
   [ -f /external_sd/.apgk_interactive ]; then
   INTERACTIVE=true
 
-  ui_print " - Interactive installation selected..."
+  ui_print " - Interactive installation selected."
 
   # /system needed for getevent command.
   #
