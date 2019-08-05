@@ -4,8 +4,8 @@
 ZIPFILE=$3
 OUTFD=$2
 
-lversion=4.9.186
-kversion=1.0.40
+lversion=4.9.187
+kversion=1.0.41
 build=1
 kname=APGK
 tagline='A pretty good kernel.'
@@ -252,7 +252,7 @@ fi
 ui_print " - Flashing $image$ENG boot image onto $device..."
 [ -n "$debug" ] && ui_print " - dd if=$dst_img of=$BOOT"
 
-/sbin/dd if=$dst_img of=$BOOT 
+/sbin/dd if=$dst_img of=$BOOT
 
 ui_print " - Installation completed."
 
@@ -309,5 +309,5 @@ ui_print " "
 
 tmp=/tmp/magisk
 mkdir $tmp
-unzip -d $tmp $magisk META-INF/com/google/android/\* 
+unzip -d $tmp $magisk META-INF/com/google/android/\*
 exec /sbin/sh $tmp/META-INF/com/google/android/update-binary dummy $OUTFD $magisk

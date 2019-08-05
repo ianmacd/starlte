@@ -26,7 +26,7 @@ build() {
 
   pack_boot_img() {
     local variant=$1
-  
+
     cp -p $archdir/boot/Image $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-zImage || exit 1
     cp -p $archdir/boot/dtb.img $imgdir/$dev/$firmware/AIK-Linux/split_img/boot.img-dtb || exit 1
     cd $imgdir/$dev/$firmware/AIK-Linux
@@ -44,7 +44,7 @@ build() {
   export ANDROID_MAJOR_VERSION=o
   rm_version; make clean && make $config
   kconfigure LOCALVERSION "-$my_kernel-$my_ver$ENG"
- 
+
   if [ -n "$eng" ]; then
     # Enable engineering options.
     kenable ASSISTED_SUPERUSER
@@ -53,7 +53,7 @@ build() {
   make -j$(nproc) || exit 1
 
   pack_boot_img $ENG
-  
+
   echo Make $dev overclock$ENG...
   kenable MALI_OVERCLOCK
   kenable PELT_HALFLIFE_8
@@ -64,7 +64,7 @@ build() {
   make -j$(nproc) || exit 1
 
   pack_boot_img -oc$ENG
-  
+
   echo Make $dev underclock$ENG...
   kdisable MALI_OVERCLOCK
   kdisable PELT_HALFLIFE_8
@@ -124,7 +124,7 @@ archdir=arch/arm64
 
 linux_v=$(make kernelversion 2>/dev/null)
 my_kernel=APGK
-my_ver=1.0.40
+my_ver=1.0.41
 firmware=bsb1
 build=1
 tagline='A pretty good kernel.'
